@@ -1,0 +1,2 @@
+ALTER TABLE "message_templates" ADD COLUMN "is_copy_paste" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "review_requests" ADD COLUMN "whatsapp_sent_manually_at" timestamp with time zone;
