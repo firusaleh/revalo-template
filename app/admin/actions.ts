@@ -32,7 +32,7 @@ export async function sendMagicLink(formData: FormData) {
     const { error } = await supabase.auth.signInWithOtp({
       email: parsed.data.email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/admin/auth/callback`,
       },
     });
     if (error) return { ok: false as const, error: error.message };
