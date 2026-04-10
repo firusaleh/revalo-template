@@ -1,7 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Safety net: if Supabase redirects ?code= to root instead of /admin/auth/callback,
+  // forward it to the correct callback route.
+  const code = searchParams.get("code");
+  if (code && pathname === "/") {
+    const callbackUrl = new URL("/admin/auth/callback", request.url);
+    callbackUrl.searchParams.set("code", code);
+    return NextResponse.redirect(callbackUrl);
+  }
 
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
@@ -48,5 +57,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/", "/admin/:path*"],
 };
