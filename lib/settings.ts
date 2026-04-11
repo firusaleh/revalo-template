@@ -10,8 +10,30 @@ export type EffectiveSettings = {
 };
 
 export async function getEffectiveSettings(): Promise<EffectiveSettings> {
-  // TODO (Phase 4): load from DB settings table when available,
-  // fall back to site.config.ts defaults.
+  // Try loading from DB first, fall back to site.config.ts defaults
+  try {
+    const { db } = await import("@/db");
+    const { settings } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    const [row] = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.id, "singleton"))
+      .limit(1);
+
+    if (row) {
+      return {
+        businessName: row.businessName,
+        googleReviewUrl: row.googleReviewUrl ?? siteConfig.googleReviewUrl,
+        smartRoutingThreshold:
+          row.smartRoutingThreshold ?? DEFAULT_SMART_ROUTING_THRESHOLD,
+      };
+    }
+  } catch {
+    // DB not available — use static config
+  }
+
   return {
     businessName: siteConfig.businessName,
     googleReviewUrl: siteConfig.googleReviewUrl,
