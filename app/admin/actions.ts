@@ -389,7 +389,17 @@ export async function syncGoogleReviewsNow(): Promise<{
   ok: boolean;
   message: string;
 }> {
-  const placeId = process.env.GOOGLE_PLACE_ID ?? "";
+  // Read Place ID from DB settings first, then fall back to env
+  let placeId = process.env.GOOGLE_PLACE_ID ?? "";
+  try {
+    const { getAdminSettings } = await import("@/lib/admin-data");
+    const settings = await getAdminSettings();
+    if (settings.googlePlaceId) {
+      placeId = settings.googlePlaceId;
+    }
+  } catch {
+    // DB unavailable, use env
+  }
   if (!placeId) {
     return { ok: false, message: "Keine Google Place ID konfiguriert." };
   }
