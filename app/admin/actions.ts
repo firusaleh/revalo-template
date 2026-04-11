@@ -67,12 +67,38 @@ export async function createReviewRequest(
     const { createReviewRequestToken } = await import("@/lib/tokens");
 
     const token = createReviewRequestToken();
-    await db.insert(reviewRequests).values({
-      customerId: parsed.data.customerId,
-      token,
-      channel: parsed.data.channel,
-      status: "pending",
-    });
+    const [inserted] = await db
+      .insert(reviewRequests)
+      .values({
+        customerId: parsed.data.customerId,
+        token,
+        channel: parsed.data.channel,
+        status: "pending",
+      })
+      .returning({ id: reviewRequests.id });
+
+    // Dispatch email/whatsapp-automated via Inngest
+    const { siteConfig } = await import("@/site.config");
+    const shouldDispatch =
+      parsed.data.channel === "email" ||
+      (parsed.data.channel === "whatsapp" &&
+        siteConfig.whatsappMode === "automated");
+
+    if (shouldDispatch && inserted) {
+      try {
+        const { inngest } = await import("@/inngest/client");
+        await inngest.send({
+          name: "review-request/send",
+          data: { reviewRequestId: inserted.id },
+        });
+      } catch (inngestErr) {
+        console.warn(
+          "[createReviewRequest] Inngest dispatch failed:",
+          inngestErr instanceof Error ? inngestErr.message : String(inngestErr),
+        );
+        // Row is saved — Inngest just didn't fire. Don't fail the whole action.
+      }
+    }
   } catch (e) {
     console.warn(
       "[createReviewRequest] DB unavailable:",
