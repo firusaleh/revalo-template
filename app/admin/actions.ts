@@ -382,6 +382,67 @@ export async function markWhatsAppSentManually(
   return { ok: true };
 }
 
+/**
+ * Manually triggers a Google Reviews sync via the Places API.
+ */
+export async function syncGoogleReviewsNow(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
+  const placeId = process.env.GOOGLE_PLACE_ID ?? "";
+  if (!placeId) {
+    return { ok: false, message: "Keine Google Place ID konfiguriert." };
+  }
+  try {
+    const { fetchGoogleReviews } = await import("@/lib/google/places");
+    const reviews = await fetchGoogleReviews(placeId);
+
+    if (reviews.length === 0) {
+      return { ok: true, message: "Keine Reviews bei Google gefunden." };
+    }
+
+    const { db } = await import("@/db");
+    const { googleReviews } = await import("@/db/schema");
+
+    let upserted = 0;
+    for (const review of reviews) {
+      const externalId = `${placeId}-${review.time}`;
+      await db
+        .insert(googleReviews)
+        .values({
+          googlePlaceId: placeId,
+          reviewerName: review.authorName,
+          rating: review.rating,
+          text: review.text,
+          publishedAt: new Date(review.time * 1000),
+          externalId,
+        })
+        .onConflictDoUpdate({
+          target: googleReviews.externalId,
+          set: {
+            reviewerName: review.authorName,
+            rating: review.rating,
+            text: review.text,
+            publishedAt: new Date(review.time * 1000),
+            syncedAt: new Date(),
+          },
+        });
+      upserted++;
+    }
+
+    revalidatePath("/admin/google-reviews");
+    return {
+      ok: true,
+      message: `${upserted} Google-Review${upserted !== 1 ? "s" : ""} synchronisiert.`,
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "Sync fehlgeschlagen.",
+    };
+  }
+}
+
 const whatsappTemplateSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2),
