@@ -7,6 +7,7 @@ import {
   Heading,
   Hr,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -18,6 +19,7 @@ export type ReviewRequestEmailProps = {
   reviewUrl: string;
   businessName: string;
   primaryColor?: string;
+  logoUrl?: string | null;
 };
 
 const defaultPrimary = "#0ea5e9";
@@ -27,6 +29,7 @@ export function ReviewRequestEmail({
   reviewUrl,
   businessName,
   primaryColor = defaultPrimary,
+  logoUrl,
 }: ReviewRequestEmailProps) {
   return (
     <Html lang="de">
@@ -36,6 +39,17 @@ export function ReviewRequestEmail({
       </Preview>
       <Body style={body}>
         <Container style={container}>
+          {logoUrl && (
+            <Section style={logoWrap}>
+              <Img
+                src={logoUrl}
+                alt={businessName}
+                width={80}
+                height={80}
+                style={logoStyle}
+              />
+            </Section>
+          )}
           <Heading style={{ ...h1, color: primaryColor }}>
             {businessName}
           </Heading>
@@ -85,6 +99,16 @@ const container: React.CSSProperties = {
   maxWidth: "560px",
   borderRadius: "12px",
   border: "1px solid #e5e7eb",
+};
+
+const logoWrap: React.CSSProperties = {
+  textAlign: "center" as const,
+  margin: "0 0 16px 0",
+};
+
+const logoStyle: React.CSSProperties = {
+  display: "inline-block",
+  objectFit: "contain" as const,
 };
 
 const h1: React.CSSProperties = {

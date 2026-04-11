@@ -45,6 +45,84 @@ export async function sendMagicLink(formData: FormData) {
   }
 }
 
+const ALLOWED_LOGO_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/svg+xml",
+  "image/webp",
+];
+const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2 MB
+
+export async function uploadLogoAction(
+  formData: FormData,
+): Promise<{ ok: boolean; url?: string; message: string }> {
+  const file = formData.get("file");
+  if (!file || !(file instanceof File) || file.size === 0) {
+    return { ok: false, message: "Keine Datei ausgewählt." };
+  }
+
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    return {
+      ok: false,
+      message: "Ungültiger Dateityp. Erlaubt: PNG, JPG, SVG, WebP.",
+    };
+  }
+
+  if (file.size > MAX_LOGO_SIZE) {
+    return { ok: false, message: "Datei zu groß. Maximal 2 MB." };
+  }
+
+  try {
+    const { uploadLogo } = await import("@/lib/supabase/storage");
+    const publicUrl = await uploadLogo(file);
+
+    if (!publicUrl) {
+      return {
+        ok: false,
+        message: "Upload fehlgeschlagen. Prüfen Sie die Supabase-Konfiguration.",
+      };
+    }
+
+    const { db } = await import("@/db");
+    const { settings } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+
+    const result = await db
+      .update(settings)
+      .set({ logoUrl: publicUrl, updatedAt: new Date() })
+      .where(eq(settings.id, "singleton"));
+
+    const rowCount =
+      typeof result === "object" && result !== null && "rowCount" in result
+        ? (result as { rowCount: number }).rowCount
+        : 0;
+
+    if (rowCount === 0) {
+      await db
+        .insert(settings)
+        .values({
+          id: "singleton",
+          businessName: "Mein Business",
+          logoUrl: publicUrl,
+          updatedAt: new Date(),
+        })
+        .onConflictDoNothing();
+    }
+
+    revalidatePath("/admin/einstellungen");
+    return { ok: true, url: publicUrl, message: "Logo erfolgreich hochgeladen." };
+  } catch (e) {
+    console.warn(
+      "[uploadLogoAction] Error:",
+      e instanceof Error ? e.message : String(e),
+    );
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "Unbekannter Fehler.",
+    };
+  }
+}
+
 const newRequestSchema = z.object({
   customerId: z.string().min(1),
   channel: z.enum(["email", "whatsapp", "qr"]),

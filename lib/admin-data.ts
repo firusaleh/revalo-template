@@ -64,6 +64,7 @@ export type AdminTemplate = {
 
 export type AdminSettings = {
   businessName: string;
+  logoUrl: string | null;
   googlePlaceId: string;
   googleReviewUrl: string;
   smartRoutingThreshold: number;
@@ -601,6 +602,7 @@ export async function getAdminSettings(): Promise<AdminSettings> {
       if (!row) {
         return {
           businessName: siteConfig.businessName,
+          logoUrl: null,
           googlePlaceId: "",
           googleReviewUrl: siteConfig.googleReviewUrl,
           smartRoutingThreshold: DEFAULT_SMART_ROUTING_THRESHOLD,
@@ -609,6 +611,7 @@ export async function getAdminSettings(): Promise<AdminSettings> {
 
       return {
         businessName: row.businessName,
+        logoUrl: row.logoUrl ?? null,
         googlePlaceId: row.googlePlaceId ?? "",
         googleReviewUrl: row.googleReviewUrl ?? siteConfig.googleReviewUrl,
         smartRoutingThreshold: row.smartRoutingThreshold,
@@ -616,6 +619,7 @@ export async function getAdminSettings(): Promise<AdminSettings> {
     },
     {
       businessName: siteConfig.businessName,
+      logoUrl: null,
       googlePlaceId: "",
       googleReviewUrl: siteConfig.googleReviewUrl,
       smartRoutingThreshold: DEFAULT_SMART_ROUTING_THRESHOLD,

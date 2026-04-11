@@ -33,11 +33,22 @@ export async function sendReviewRequestEmail(
   token: string,
 ): Promise<SendReviewRequestEmailResult> {
   const reviewUrl = `${getBaseUrl()}/r/${token}`;
+
+  let logoUrl: string | null = null;
+  try {
+    const { getAdminSettings } = await import("@/lib/admin-data");
+    const settings = await getAdminSettings();
+    logoUrl = settings.logoUrl;
+  } catch {
+    // Fallback: no logo
+  }
+
   const props: ReviewRequestEmailProps = {
     customerName: customer.name,
     reviewUrl,
     businessName: siteConfig.businessName,
     primaryColor: siteConfig.primaryColor,
+    logoUrl,
   };
   const html = await renderReviewRequestEmail(props);
 

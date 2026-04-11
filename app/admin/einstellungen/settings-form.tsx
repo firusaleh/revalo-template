@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { updateSettings } from "@/app/admin/actions";
+import { updateSettings, uploadLogoAction } from "@/app/admin/actions";
 import type { AdminSettings } from "@/lib/admin-data";
 import { siteConfig } from "@/site.config";
 
@@ -21,11 +22,81 @@ function SubmitButton() {
   );
 }
 
+function LogoUploadSection({ currentLogoUrl }: { currentLogoUrl: string | null }) {
+  const [logoUrl, setLogoUrl] = useState(currentLogoUrl);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadOk, setUploadOk] = useState(false);
+
+  async function handleLogoUpload(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setUploading(true);
+    setUploadMessage("");
+
+    const formData = new FormData(e.currentTarget);
+    const result = await uploadLogoAction(formData);
+
+    setUploadOk(result.ok);
+    setUploadMessage(result.message);
+    if (result.ok && result.url) {
+      setLogoUrl(result.url);
+    }
+    setUploading(false);
+  }
+
+  return (
+    <div className="mb-6 pb-6 border-b border-gray-200">
+      <label className="text-sm font-medium">Logo</label>
+      <div className="mt-2 flex items-start gap-4">
+        {logoUrl && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={logoUrl}
+            alt="Aktuelles Logo"
+            width={80}
+            height={80}
+            className="rounded-lg border border-gray-200 object-contain"
+          />
+        )}
+        <form onSubmit={handleLogoUpload} className="flex flex-col gap-2">
+          <input
+            name="file"
+            type="file"
+            accept=".png,.jpg,.jpeg,.svg,.webp"
+            className="text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-sm file:font-medium hover:file:bg-gray-200"
+          />
+          <button
+            type="submit"
+            disabled={uploading}
+            className="w-fit rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            style={{ backgroundColor: siteConfig.primaryColor }}
+          >
+            {uploading ? "Wird hochgeladen..." : "Logo hochladen"}
+          </button>
+          {uploadMessage && (
+            <span
+              className={`text-sm ${uploadOk ? "text-green-700" : "text-red-700"}`}
+              role="status"
+            >
+              {uploadMessage}
+            </span>
+          )}
+          <p className="text-xs text-gray-500">
+            PNG, JPG, SVG oder WebP. Maximal 2 MB.
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function SettingsForm({ settings }: { settings: AdminSettings }) {
   const [state, formAction] = useFormState(updateSettings, initial);
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <div>
+    <div className="flex flex-col gap-0">
+      <LogoUploadSection currentLogoUrl={settings.logoUrl} />
+      <form action={formAction} className="flex flex-col gap-4">
+        <div>
         <label className="text-sm font-medium">Business-Name</label>
         <input
           name="businessName"
@@ -79,6 +150,7 @@ export function SettingsForm({ settings }: { settings: AdminSettings }) {
           </span>
         )}
       </div>
-    </form>
+      </form>
+    </div>
   );
 }

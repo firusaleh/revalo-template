@@ -1,10 +1,13 @@
 import QRCode from "qrcode";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { siteConfig } from "@/site.config";
+import { getAdminSettings } from "@/lib/admin-data";
+import { BusinessLogo } from "@/components/BusinessLogo";
 
 export const dynamic = "force-dynamic";
 
 export default async function QrPage() {
+  const settings = await getAdminSettings();
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
     "http://localhost:3000";
@@ -25,6 +28,12 @@ export default async function QrPage() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm flex flex-col items-center">
+          <BusinessLogo
+            logoUrl={settings.logoUrl}
+            businessName={settings.businessName}
+            size={64}
+            className="rounded-lg mb-4"
+          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={dataUrl}

@@ -119,6 +119,7 @@ export const users = pgTable("users", {
 export const settings = pgTable("settings", {
   id: text("id").primaryKey().default("singleton"),
   businessName: text("business_name").notNull(),
+  logoUrl: text("logo_url"),
   googlePlaceId: text("google_place_id"),
   googleReviewUrl: text("google_review_url"),
   smartRoutingThreshold: integer("smart_routing_threshold")
