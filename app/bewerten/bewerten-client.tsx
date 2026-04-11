@@ -17,11 +17,13 @@ type BewertenClientProps = {
 export function BewertenClient({ logoUrl }: BewertenClientProps) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>("rate");
+  const [selectedRating, setSelectedRating] = useState<number>(0);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const handleRatingSelect = (rating: number) => {
     setError(null);
+    setSelectedRating(rating);
     startTransition(async () => {
       try {
         const result = await submitRating(null, rating);
@@ -37,7 +39,7 @@ export function BewertenClient({ logoUrl }: BewertenClientProps) {
   };
 
   const handleFeedbackSubmit = async (comment: string) => {
-    await submitFeedback(null, comment);
+    await submitFeedback(null, comment, selectedRating);
     router.push("/danke");
   };
 
