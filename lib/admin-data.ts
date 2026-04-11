@@ -69,6 +69,19 @@ export type AdminSettings = {
   smartRoutingThreshold: number;
 };
 
+async function getDb() {
+  const { db } = await import("@/db");
+  return db;
+}
+
+async function getSchema() {
+  return await import("@/db/schema");
+}
+
+async function getDrizzle() {
+  return await import("drizzle-orm");
+}
+
 async function tryDb<T>(query: () => Promise<T>, fallback: T): Promise<T> {
   try {
     return await query();
@@ -294,7 +307,43 @@ export const DEFAULT_COPY_PASTE_BODY =
 export async function getDashboardKpis(): Promise<DashboardKpis> {
   return tryDb(
     async () => {
-      throw new Error("DB not configured");
+      const db = await getDb();
+      const schema = await getSchema();
+      const { sql, eq, gte, count, avg } = await getDrizzle();
+
+      const now = new Date();
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const [reqResult] = await db
+        .select({ value: count() })
+        .from(schema.reviewRequests)
+        .where(gte(schema.reviewRequests.createdAt, firstOfMonth));
+      const requestsThisMonth = reqResult?.value ?? 0;
+
+      const [avgResult] = await db
+        .select({ value: avg(schema.feedbacks.rating) })
+        .from(schema.feedbacks);
+      const avgRating = avgResult?.value ? parseFloat(avgResult.value) : 0;
+
+      const [routedResult] = await db
+        .select({ value: count() })
+        .from(schema.reviewRequests)
+        .where(
+          sql`${schema.reviewRequests.status} = 'routed_google' AND ${schema.reviewRequests.createdAt} >= ${firstOfMonth}`,
+        );
+      const routedCount = routedResult?.value ?? 0;
+      const smartRoutingRate =
+        requestsThisMonth > 0 ? routedCount / requestsThisMonth : 0;
+
+      const [googleResult] = await db
+        .select({ value: count() })
+        .from(schema.googleReviews);
+      const totalGoogleReviews = googleResult?.value ?? 0;
+
+      // suppress unused-variable warnings for imported but destructured names
+      void eq;
+
+      return { requestsThisMonth, avgRating, smartRoutingRate, totalGoogleReviews };
     },
     {
       requestsThisMonth: MOCK_REQUESTS.length,
@@ -309,31 +358,126 @@ export async function getDashboardKpis(): Promise<DashboardKpis> {
 
 export async function listReviewRequests(): Promise<AdminReviewRequest[]> {
   return tryDb(async () => {
-    throw new Error("DB not configured");
+    const db = await getDb();
+    const schema = await getSchema();
+    const { eq, desc } = await getDrizzle();
+
+    const rows = await db
+      .select({
+        id: schema.reviewRequests.id,
+        channel: schema.reviewRequests.channel,
+        status: schema.reviewRequests.status,
+        createdAt: schema.reviewRequests.createdAt,
+        sentAt: schema.reviewRequests.sentAt,
+        token: schema.reviewRequests.token,
+        customerName: schema.customers.name,
+        customerEmail: schema.customers.email,
+        customerPhone: schema.customers.phone,
+      })
+      .from(schema.reviewRequests)
+      .leftJoin(
+        schema.customers,
+        eq(schema.reviewRequests.customerId, schema.customers.id),
+      )
+      .orderBy(desc(schema.reviewRequests.createdAt));
+
+    return rows.map((r) => ({
+      id: r.id,
+      customerName: r.customerName ?? "Unbekannt",
+      customerEmail: r.customerEmail ?? "",
+      customerPhone: r.customerPhone,
+      channel: r.channel,
+      status: r.status,
+      createdAt: r.createdAt.toISOString(),
+      sentAt: r.sentAt?.toISOString() ?? null,
+      token: r.token,
+    }));
   }, MOCK_REQUESTS);
 }
 
 export async function listFeedbacks(): Promise<AdminFeedback[]> {
   return tryDb(async () => {
-    throw new Error("DB not configured");
+    const db = await getDb();
+    const schema = await getSchema();
+    const { desc } = await getDrizzle();
+
+    const rows = await db
+      .select()
+      .from(schema.feedbacks)
+      .orderBy(desc(schema.feedbacks.createdAt));
+
+    return rows.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      isAnonymous: r.isAnonymous,
+      createdAt: r.createdAt.toISOString(),
+    }));
   }, MOCK_FEEDBACKS);
 }
 
 export async function listGoogleReviews(): Promise<AdminGoogleReview[]> {
   return tryDb(async () => {
-    throw new Error("DB not configured");
+    const db = await getDb();
+    const schema = await getSchema();
+    const { desc } = await getDrizzle();
+
+    const rows = await db
+      .select()
+      .from(schema.googleReviews)
+      .orderBy(desc(schema.googleReviews.publishedAt));
+
+    return rows.map((r) => ({
+      id: r.id,
+      reviewerName: r.reviewerName,
+      rating: r.rating,
+      text: r.text,
+      publishedAt: r.publishedAt.toISOString(),
+    }));
   }, MOCK_GOOGLE_REVIEWS);
 }
 
 export async function listCustomers(): Promise<AdminCustomer[]> {
   return tryDb(async () => {
-    throw new Error("DB not configured");
+    const db = await getDb();
+    const schema = await getSchema();
+    const { desc } = await getDrizzle();
+
+    const rows = await db
+      .select()
+      .from(schema.customers)
+      .orderBy(desc(schema.customers.createdAt));
+
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      createdAt: r.createdAt.toISOString(),
+    }));
   }, MOCK_CUSTOMERS);
 }
 
 export async function listTemplates(): Promise<AdminTemplate[]> {
   return tryDb(async () => {
-    throw new Error("DB not configured");
+    const db = await getDb();
+    const schema = await getSchema();
+    const { desc } = await getDrizzle();
+
+    const rows = await db
+      .select()
+      .from(schema.messageTemplates)
+      .orderBy(desc(schema.messageTemplates.updatedAt));
+
+    return rows.map((r) => ({
+      id: r.id,
+      channel: r.channel,
+      name: r.name,
+      subject: r.subject,
+      body: r.body,
+      isActive: r.isActive,
+      isCopyPaste: r.isCopyPaste,
+    }));
   }, MOCK_TEMPLATES);
 }
 
@@ -350,7 +494,50 @@ export async function getPendingWhatsAppRequests(
 ): Promise<AdminReviewRequest[]> {
   return tryDb(
     async () => {
-      throw new Error("DB not configured");
+      const db = await getDb();
+      const schema = await getSchema();
+      const { eq, and, gte, desc } = await getDrizzle();
+
+      const conditions = [
+        eq(schema.reviewRequests.channel, "whatsapp"),
+        eq(schema.reviewRequests.status, "pending"),
+      ];
+
+      if (filter === "today") {
+        conditions.push(gte(schema.reviewRequests.createdAt, startOfToday()));
+      }
+
+      const rows = await db
+        .select({
+          id: schema.reviewRequests.id,
+          channel: schema.reviewRequests.channel,
+          status: schema.reviewRequests.status,
+          createdAt: schema.reviewRequests.createdAt,
+          sentAt: schema.reviewRequests.sentAt,
+          token: schema.reviewRequests.token,
+          customerName: schema.customers.name,
+          customerEmail: schema.customers.email,
+          customerPhone: schema.customers.phone,
+        })
+        .from(schema.reviewRequests)
+        .leftJoin(
+          schema.customers,
+          eq(schema.reviewRequests.customerId, schema.customers.id),
+        )
+        .where(and(...conditions))
+        .orderBy(desc(schema.reviewRequests.createdAt));
+
+      return rows.map((r) => ({
+        id: r.id,
+        customerName: r.customerName ?? "Unbekannt",
+        customerEmail: r.customerEmail ?? "",
+        customerPhone: r.customerPhone,
+        channel: r.channel as "email" | "whatsapp" | "qr",
+        status: r.status as AdminReviewRequest["status"],
+        createdAt: r.createdAt.toISOString(),
+        sentAt: r.sentAt?.toISOString() ?? null,
+        token: r.token,
+      }));
     },
     MOCK_REQUESTS.filter((r) => {
       if (r.channel !== "whatsapp") return false;
@@ -369,7 +556,29 @@ export async function listWhatsAppCopyPasteTemplates(): Promise<
 > {
   return tryDb(
     async () => {
-      throw new Error("DB not configured");
+      const db = await getDb();
+      const schema = await getSchema();
+      const { eq, and } = await getDrizzle();
+
+      const rows = await db
+        .select()
+        .from(schema.messageTemplates)
+        .where(
+          and(
+            eq(schema.messageTemplates.channel, "whatsapp"),
+            eq(schema.messageTemplates.isCopyPaste, true),
+          ),
+        );
+
+      return rows.map((r) => ({
+        id: r.id,
+        channel: r.channel,
+        name: r.name,
+        subject: r.subject,
+        body: r.body,
+        isActive: r.isActive,
+        isCopyPaste: r.isCopyPaste,
+      }));
     },
     MOCK_TEMPLATES.filter(
       (t) => t.channel === "whatsapp" && t.isCopyPaste === true,
@@ -380,7 +589,30 @@ export async function listWhatsAppCopyPasteTemplates(): Promise<
 export async function getAdminSettings(): Promise<AdminSettings> {
   return tryDb(
     async () => {
-      throw new Error("DB not configured");
+      const db = await getDb();
+      const schema = await getSchema();
+      const { eq } = await getDrizzle();
+
+      const [row] = await db
+        .select()
+        .from(schema.settings)
+        .where(eq(schema.settings.id, "singleton"));
+
+      if (!row) {
+        return {
+          businessName: siteConfig.businessName,
+          googlePlaceId: "",
+          googleReviewUrl: siteConfig.googleReviewUrl,
+          smartRoutingThreshold: DEFAULT_SMART_ROUTING_THRESHOLD,
+        };
+      }
+
+      return {
+        businessName: row.businessName,
+        googlePlaceId: row.googlePlaceId ?? "",
+        googleReviewUrl: row.googleReviewUrl ?? siteConfig.googleReviewUrl,
+        smartRoutingThreshold: row.smartRoutingThreshold,
+      };
     },
     {
       businessName: siteConfig.businessName,

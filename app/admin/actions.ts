@@ -61,7 +61,29 @@ export async function createReviewRequest(
   if (!parsed.success) {
     return { ok: false, message: "Bitte alle Felder korrekt ausfüllen." };
   }
-  // TODO: persist to DB
+  try {
+    const { db } = await import("@/db");
+    const { reviewRequests } = await import("@/db/schema");
+    const { createReviewRequestToken } = await import("@/lib/tokens");
+
+    const token = createReviewRequestToken();
+    await db.insert(reviewRequests).values({
+      customerId: parsed.data.customerId,
+      token,
+      channel: parsed.data.channel,
+      status: "pending",
+    });
+  } catch (e) {
+    console.warn(
+      "[createReviewRequest] DB unavailable:",
+      e instanceof Error ? e.message : String(e),
+    );
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "DB-Fehler.",
+    };
+  }
+  revalidatePath("/admin/anfragen");
   return {
     ok: true,
     message: `Bewertungsanfrage über ${parsed.data.channel} erstellt.`,
@@ -86,7 +108,26 @@ export async function upsertCustomer(
   if (!parsed.success) {
     return { ok: false, message: "Bitte Name und E-Mail korrekt eingeben." };
   }
-  // TODO: persist to DB
+  try {
+    const { db } = await import("@/db");
+    const { customers } = await import("@/db/schema");
+
+    await db.insert(customers).values({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone ?? null,
+    });
+  } catch (e) {
+    console.warn(
+      "[upsertCustomer] DB unavailable:",
+      e instanceof Error ? e.message : String(e),
+    );
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "DB-Fehler.",
+    };
+  }
+  revalidatePath("/admin/kunden");
   return { ok: true, message: `Kunde ${parsed.data.name} gespeichert.` };
 }
 
@@ -110,6 +151,28 @@ export async function upsertTemplate(
   if (!parsed.success) {
     return { ok: false, message: "Template ungültig." };
   }
+  try {
+    const { db } = await import("@/db");
+    const { messageTemplates } = await import("@/db/schema");
+
+    await db.insert(messageTemplates).values({
+      name: parsed.data.name,
+      channel: parsed.data.channel,
+      subject: parsed.data.subject ?? null,
+      body: parsed.data.body,
+      isActive: true,
+    });
+  } catch (e) {
+    console.warn(
+      "[upsertTemplate] DB unavailable:",
+      e instanceof Error ? e.message : String(e),
+    );
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "DB-Fehler.",
+    };
+  }
+  revalidatePath("/admin/templates");
   return { ok: true, message: `Template „${parsed.data.name}" gespeichert.` };
 }
 
@@ -133,6 +196,48 @@ export async function updateSettings(
   if (!parsed.success) {
     return { ok: false, message: "Einstellungen ungültig." };
   }
+  try {
+    const { db } = await import("@/db");
+    const { settings } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+
+    const values = {
+      businessName: parsed.data.businessName,
+      googlePlaceId: parsed.data.googlePlaceId ?? null,
+      googleReviewUrl: parsed.data.googleReviewUrl || null,
+      smartRoutingThreshold: parsed.data.smartRoutingThreshold,
+      updatedAt: new Date(),
+    };
+
+    const result = await db
+      .update(settings)
+      .set(values)
+      .where(eq(settings.id, "singleton"));
+
+    // If no row was updated, insert a new one
+    const rowCount =
+      typeof result === "object" && result !== null && "rowCount" in result
+        ? (result as { rowCount: number }).rowCount
+        : 0;
+    if (rowCount === 0) {
+      await db
+        .insert(settings)
+        .values({ id: "singleton", ...values })
+        .onConflictDoNothing();
+    }
+
+    void sql; // suppress unused warning
+  } catch (e) {
+    console.warn(
+      "[updateSettings] DB unavailable:",
+      e instanceof Error ? e.message : String(e),
+    );
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "DB-Fehler.",
+    };
+  }
+  revalidatePath("/admin/einstellungen");
   return { ok: true, message: "Einstellungen gespeichert." };
 }
 
