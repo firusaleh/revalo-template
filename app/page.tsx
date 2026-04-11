@@ -75,7 +75,7 @@ export default async function Home() {
                 </p>
                 <div className="animate-fade-in-up mt-10 flex flex-col items-center gap-4 sm:flex-row lg:justify-start [animation-delay:0.4s]">
                   <a
-                    href="/admin/login"
+                    href="/kontakt"
                     className="inline-flex items-center rounded-full bg-sky-500 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-400 hover:shadow-xl hover:shadow-sky-500/30"
                   >
                     Jetzt starten
@@ -409,7 +409,7 @@ export default async function Home() {
               Starten Sie jetzt — keine Kreditkarte erforderlich.
             </p>
             <a
-              href="/admin/login"
+              href="/kontakt"
               className="mt-10 inline-flex items-center rounded-full bg-sky-500 px-10 py-4 text-base font-semibold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-400 hover:shadow-xl hover:shadow-sky-500/30"
             >
               Jetzt starten

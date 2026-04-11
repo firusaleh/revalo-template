@@ -49,7 +49,7 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
             FAQ
           </a>
           <a
-            href="/admin/login"
+            href="/kontakt"
             className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-400 hover:shadow-lg hover:shadow-sky-500/25"
           >
             Jetzt starten
@@ -107,7 +107,7 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
               FAQ
             </a>
             <a
-              href="/admin/login"
+              href="/kontakt"
               className="mt-2 rounded-full bg-sky-500 px-5 py-3 text-center text-sm font-semibold text-white transition-all hover:bg-sky-400"
             >
               Jetzt starten
