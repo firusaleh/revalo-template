@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { siteConfig } from "@/site.config";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Impressum",
   description: "Impressum und Anbieterkennzeichnung",
+  alternates: { canonical: "/impressum" },
 };
 
 export default function ImpressumPage() {

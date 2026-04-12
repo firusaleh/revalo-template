@@ -1,6 +1,16 @@
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { getAdminSettings } from "@/lib/admin-data";
 import { LandingNav } from "./landing-nav";
-import { LandingDemo } from "./landing-demo";
+
+const LandingDemo = dynamic(() => import("./landing-demo").then((m) => m.LandingDemo), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[400px] items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+    </div>
+  ),
+});
 
 export default async function Home() {
   const settings = await getAdminSettings();
@@ -37,12 +47,12 @@ export default async function Home() {
         .animate-float-delayed { animation: float 3s ease-in-out 1s infinite; }
         .animate-float-delayed-2 { animation: float 3s ease-in-out 2s infinite; }
         .animate-marquee { animation: marquee 30s linear infinite; }
-        .animate-stagger-1 { animation: stagger1 0.6s ease-out 0.1s forwards; opacity: 0; }
-        .animate-stagger-2 { animation: stagger1 0.6s ease-out 0.2s forwards; opacity: 0; }
-        .animate-stagger-3 { animation: stagger1 0.6s ease-out 0.3s forwards; opacity: 0; }
-        .animate-stagger-4 { animation: stagger1 0.6s ease-out 0.4s forwards; opacity: 0; }
-        .animate-stagger-5 { animation: stagger1 0.6s ease-out 0.5s forwards; opacity: 0; }
-        .animate-stagger-6 { animation: stagger1 0.6s ease-out 0.6s forwards; opacity: 0; }
+        .animate-stagger-1 { animation: stagger1 0.6s ease-out 0.1s forwards; opacity: 0; min-height: 160px; contain: layout; }
+        .animate-stagger-2 { animation: stagger1 0.6s ease-out 0.2s forwards; opacity: 0; min-height: 160px; contain: layout; }
+        .animate-stagger-3 { animation: stagger1 0.6s ease-out 0.3s forwards; opacity: 0; min-height: 160px; contain: layout; }
+        .animate-stagger-4 { animation: stagger1 0.6s ease-out 0.4s forwards; opacity: 0; min-height: 160px; contain: layout; }
+        .animate-stagger-5 { animation: stagger1 0.6s ease-out 0.5s forwards; opacity: 0; min-height: 160px; contain: layout; }
+        .animate-stagger-6 { animation: stagger1 0.6s ease-out 0.6s forwards; opacity: 0; min-height: 160px; contain: layout; }
       `}</style>
 
       <div className="min-h-screen bg-slate-950 text-white antialiased">
@@ -68,7 +78,10 @@ export default async function Home() {
                     Automatisch.
                   </span>
                 </h1>
-                <p className="animate-fade-in-up mt-6 text-lg leading-relaxed text-slate-400 sm:text-xl [animation-delay:0.2s]">
+                <p className="animate-fade-in-up mt-4 text-base font-medium text-slate-300 sm:text-lg [animation-delay:0.15s]">
+                  Die Bewertungsmanagement-Software für lokale Unternehmen. Zufriedene Kunden landen auf Google – kritisches Feedback bleibt bei Ihnen.
+                </p>
+                <p className="animate-fade-in-up mt-4 text-lg leading-relaxed text-slate-400 sm:text-xl [animation-delay:0.2s]">
                   Revalo leitet zufriedene Kunden direkt zu Google — unzufriedene
                   Kunden geben internes Feedback. So steigt Ihr Rating, ohne
                   negative Reviews.
@@ -180,7 +193,7 @@ export default async function Home() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Alles, was Sie brauchen
+                Bewertungsmanagement-Features: Alles, was Sie brauchen
               </h2>
               <p className="mt-4 text-lg text-slate-400">
                 Revalo vereint alle Tools zur Bewertungsgewinnung in einer Plattform.
@@ -246,7 +259,7 @@ export default async function Home() {
           <div className="mx-auto max-w-7xl px-6">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                So funktioniert&apos;s
+                So funktioniert automatisches Bewertungsmanagement
               </h2>
               <p className="mt-4 text-lg text-slate-400">
                 In drei einfachen Schritten zu mehr Google-Bewertungen.
@@ -294,7 +307,7 @@ export default async function Home() {
             <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  Erleben Sie Smart-Routing live
+                  Smart-Routing Live-Demo: So werden Bewertungen automatisch geroutet
                 </h2>
                 <p className="mt-4 text-lg text-slate-400">
                   Testen Sie selbst: Klicken Sie auf die Sterne und sehen Sie,
@@ -339,7 +352,7 @@ export default async function Home() {
           <div className="mx-auto max-w-3xl px-6">
             <div className="text-center">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Häufig gestellte Fragen
+                Häufig gestellte Fragen zu Revalo &amp; Bewertungsmanagement
               </h2>
               <p className="mt-4 text-lg text-slate-400">
                 Alles, was Sie über Revalo wissen müssen.
@@ -426,8 +439,7 @@ export default async function Home() {
             <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
               <div className="flex items-center gap-3">
                 {settings.logoUrl ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
+                  <Image
                     src={settings.logoUrl}
                     alt={settings.businessName}
                     width={36}

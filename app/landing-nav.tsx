@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 type LandingNavProps = {
   logoUrl: string | null;
@@ -16,12 +17,12 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
         {/* Logo */}
         <a href="/" className="flex items-center gap-3">
           {logoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
+            <Image
               src={logoUrl}
               alt={businessName}
               width={44}
               height={44}
+              priority
               className="rounded-lg bg-white/90 object-contain p-1"
             />
           ) : null}
@@ -47,6 +48,12 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
             className="text-sm text-slate-300 transition-colors hover:text-white"
           >
             FAQ
+          </a>
+          <a
+            href="/blog"
+            className="text-sm text-slate-300 transition-colors hover:text-white"
+          >
+            Blog
           </a>
           <a
             href="/kontakt"
@@ -92,19 +99,19 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
             >
               So funktioniert&apos;s
             </a>
-            <a
-              href="#pricing"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
-            >
-              Preise
-            </a>
-            <a
+<a
               href="#faq"
               onClick={() => setMobileOpen(false)}
               className="rounded-lg px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
             >
               FAQ
+            </a>
+            <a
+              href="/blog"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              Blog
             </a>
             <a
               href="/kontakt"

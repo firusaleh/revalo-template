@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { siteConfig } from "@/site.config";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Datenschutz",
   description: "Datenschutzerklärung",
+  alternates: { canonical: "/datenschutz" },
 };
 
 export default function DatenschutzPage() {
