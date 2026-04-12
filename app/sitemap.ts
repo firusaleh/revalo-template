@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getAllSlugs } from "@/lib/blog";
+import { getAllBranchenSlugs } from "@/lib/branchen";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://getrevalo.de";
@@ -51,5 +52,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...blogPages];
+  const branchenPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/branchen`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    },
+    ...getAllBranchenSlugs().map((slug) => ({
+      url: `${baseUrl}/branchen/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+
+  return [...staticPages, ...branchenPages, ...blogPages];
 }
