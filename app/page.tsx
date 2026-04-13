@@ -442,9 +442,9 @@ export default async function Home() {
                   <Image
                     src={settings.logoUrl}
                     alt={settings.businessName}
-                    width={36}
-                    height={36}
-                    className="rounded-md bg-white/90 object-contain p-1"
+                    width={120}
+                    height={32}
+                    className="h-8 w-auto object-contain drop-shadow-[0_0_12px_rgba(14,165,233,0.3)]"
                   />
                 ) : null}
                 <span className="text-lg font-bold text-white">Revalo</span>

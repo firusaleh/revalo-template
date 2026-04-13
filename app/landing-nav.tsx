@@ -20,10 +20,10 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
             <Image
               src={logoUrl}
               alt={businessName}
-              width={44}
-              height={44}
+              width={140}
+              height={36}
               priority
-              className="rounded-lg bg-white/90 object-contain p-1"
+              className="h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(14,165,233,0.3)]"
             />
           ) : null}
           <span className="text-xl font-bold text-white">Revalo</span>
