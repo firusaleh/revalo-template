@@ -97,7 +97,7 @@ export default async function Home() {
                     </svg>
                   </a>
                   <a
-                    href="#demo"
+                    href="/demo"
                     className="inline-flex items-center rounded-full border border-slate-700 px-8 py-3.5 text-sm font-semibold text-slate-300 transition-all hover:border-slate-600 hover:bg-white/5 hover:text-white"
                   >
                     Demo ansehen

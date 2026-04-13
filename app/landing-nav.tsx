@@ -62,6 +62,12 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
             Blog
           </a>
           <a
+            href="/demo"
+            className="text-sm text-slate-300 transition-colors hover:text-white"
+          >
+            Demo
+          </a>
+          <a
             href="/kontakt"
             className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-400 hover:shadow-lg hover:shadow-sky-500/25"
           >
@@ -125,6 +131,13 @@ export function LandingNav({ logoUrl, businessName }: LandingNavProps) {
               className="rounded-lg px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
             >
               Blog
+            </a>
+            <a
+              href="/demo"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-4 py-3 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              Demo
             </a>
             <a
               href="/kontakt"
