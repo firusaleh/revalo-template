@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import DemoPlayer from "./demo-player";
 
 export const metadata: Metadata = {
@@ -10,14 +11,6 @@ export const metadata: Metadata = {
     description:
       "Automatische 5-Sterne-Bewertungen per WhatsApp, Smart Routing und Google-konform. Jetzt Demo ansehen.",
     type: "video.other",
-    images: [
-      {
-        url: "/og/revalo-demo-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Revalo Demo Preview",
-      },
-    ],
   },
   twitter: {
     card: "player",
@@ -33,7 +26,9 @@ export const metadata: Metadata = {
 export default function DemoPage() {
   return (
     <>
-      <DemoPlayer />
+      <Suspense fallback={null}>
+        <DemoPlayer />
+      </Suspense>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

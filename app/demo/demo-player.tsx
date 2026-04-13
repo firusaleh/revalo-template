@@ -1,13 +1,43 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+
+/* ── Analytics helper ─────────────────────────────────────── */
+type GtagFn = (...args: unknown[]) => void;
+
+function trackEvent(name: string, params?: Record<string, string>) {
+  if (typeof window === "undefined") return;
+  // Google Analytics 4 (gtag)
+  const w = window as unknown as Record<string, GtagFn>;
+  if ("gtag" in window) {
+    w.gtag("event", name, params);
+  }
+  // Meta Pixel
+  if ("fbq" in window) {
+    w.fbq("trackCustom", name, params);
+  }
+}
 
 export default function DemoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [format, setFormat] = useState<"horizontal" | "vertical">("horizontal");
   const [muted, setMuted] = useState(true);
+  const searchParams = useSearchParams();
+
+  // UTM parameters from QR code postcards
+  const utmSource = searchParams.get("utm_source") || "";
+  const utmMedium = searchParams.get("utm_medium") || "";
+  const utmCampaign = searchParams.get("utm_campaign") || "";
+  const utmParams = { utm_source: utmSource, utm_medium: utmMedium, utm_campaign: utmCampaign };
+
+  // Track demo_viewed on mount
+  useEffect(() => {
+    trackEvent("demo_viewed", utmParams);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const switchFormat = (f: "horizontal" | "vertical") => {
     setFormat(f);
@@ -25,6 +55,7 @@ export default function DemoPlayer() {
     videoRef.current.volume = 1;
     if (videoRef.current.paused) videoRef.current.play();
     setMuted(false);
+    trackEvent("demo_unmuted", utmParams);
   };
 
   const toggleSound = () => {
@@ -258,7 +289,8 @@ export default function DemoPlayer() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link
-              href="/kontakt"
+              href={`/kontakt${utmSource ? `?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}` : ""}`}
+              onClick={() => trackEvent("demo_cta_clicked", { ...utmParams, cta: "demo_anfragen" })}
               className="inline-flex items-center gap-2 rounded-full bg-sky-500 px-7 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-[0_10px_30px_rgba(14,165,233,0.4)]"
             >
               Demo anfragen →
