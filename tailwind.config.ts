@@ -62,7 +62,17 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
-  		}
+  		},
+  		keyframes: {
+  			'pulse-ring': {
+  				'0%': { boxShadow: '0 0 0 0 rgba(14,165,233,0.5)' },
+  				'70%': { boxShadow: '0 0 0 10px rgba(14,165,233,0)' },
+  				'100%': { boxShadow: '0 0 0 0 rgba(14,165,233,0)' },
+  			},
+  		},
+  		animation: {
+  			'pulse-ring': 'pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],
